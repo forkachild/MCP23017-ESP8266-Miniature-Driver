@@ -49,7 +49,7 @@ Usage is pretty straightforward. No I2C library required. Easy to understand API
     
 
 
-## Switch GPIO and read from a port by single calls
+## Effortlessly control GPIO
 
 	uint8 input;
     
