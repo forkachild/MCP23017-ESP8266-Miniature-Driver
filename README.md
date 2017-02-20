@@ -1,6 +1,6 @@
 # MCP23017 ESP8266 Miniature Driver
 
-This is a simple MCP23017 driver for ESP8266. Kudos to developing in C.
+This is a simple MCP23017 driver for ESP8266. MCP23017 is an I/O Expander, which means it provides 16 fully customizable Input/Output pins for any microcontroller supporting I2C protocol. ESP8266 is a powerful chip, except that it lacks the I2C hardware. This library is a fully functional controller for the same. Kudos to developing in C.
 
 Usage is pretty straightforward. No I2C library required. Easy to understand API.
 
@@ -8,9 +8,11 @@ Circuit diagram is as follows
 
 ![Schematic](https://github.com/forkachild/MCP23017-ESP8266-Driver/raw/master/schematic.png)
 
-If you do not want to use the default SDA, SCL and MCP23017 address, and also switch on debugging logging, use following macros in `user_config.h`
+## Customize SDA & SCL GPIO, Logging and adddressing
 
-	Choose GPIO
+	// user_config.h
+    
+    // Choose GPIO
     
     #define MCP_SDA_GPIO		14
     #define MCP_SCL_GPIO		12
