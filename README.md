@@ -15,11 +15,11 @@ If you do not want to use the default SDA, SCL and MCP23017 address, and also sw
     #define MCP_SDA_GPIO		14
     #define MCP_SCL_GPIO		12
     
-    Debugging mode
+    // Debugging mode
     
     #define MCP_LOG_EN
     
-    Custom MCP23017 address
+    // Custom MCP23017 address
     
     #define MCP_A0				0
     #define MCP_A1				0
@@ -31,16 +31,16 @@ Configuration uses a few function calls
     
     mcpInit();
     
-    //Set pin mode to input or output, individual bits can be ORed
+    // Set pin mode to input or output, individual bits can be ORed
     
     mcpSetPinmode(MCP_PORTA, MCP_OUTPUT);
     mcpSetPinmode(MCP_PORTB, 0x0E);
     
-    //Configure internal pullups (for input modes only), individual bits can be ORed
+    // Configure internal pullups (for input modes only), individual bits can be ORed
     
     mcpSetPullups(MCP_PORTB, MCP_PULL_HIGH);
     
-    //Input polarity can be changed, and yet again individual bits can be ORed
+    // Input polarity can be changed, and yet again individual bits can be ORed
     
     mcpSetInputPolarity(MCP_PORTA, MCP_IPOL_INVERTED);
     
