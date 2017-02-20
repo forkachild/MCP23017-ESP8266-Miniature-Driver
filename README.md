@@ -27,18 +27,20 @@ If you do not want to use the default SDA, SCL and MCP23017 address, and also sw
 
 Configuration uses a few function calls
 
-	mcpInit();
+	#include "mcp.h"
+    
+    mcpInit();
     
     //Set pin mode to input or output, individual bits can be ORed
     
     mcpSetPinmode(MCP_PORTA, MCP_OUTPUT);
     mcpSetPinmode(MCP_PORTB, 0x0E);
     
-    Configure internal pullups (for input modes only), individual bits can be ORed
+    //Configure internal pullups (for input modes only), individual bits can be ORed
     
     mcpSetPullups(MCP_PORTB, MCP_PULL_HIGH);
     
-    Input polarity can be changed, and yet again individual bits can be ORed
+    //Input polarity can be changed, and yet again individual bits can be ORed
     
     mcpSetInputPolarity(MCP_PORTA, MCP_IPOL_INVERTED);
     
