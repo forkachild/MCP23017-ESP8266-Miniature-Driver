@@ -2,7 +2,7 @@
 
 This is a simple MCP23017 driver for ESP8266. Kudos to developing in C.
 
-Usage is pretty straightforward.
+Usage is pretty straightforward. No I2C library required. Easy to understand API.
 
 Circuit diagram is as follows
 
@@ -50,3 +50,5 @@ Switch GPIO and read from a port by single calls
     
 	mcpSetGpio(MCP_PORTA, 0xF0);
     mcpGetGpio(MCP_PORTB, &input);
+    
+Enjoy... :-)
