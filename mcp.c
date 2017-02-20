@@ -1,6 +1,6 @@
 #include "mcp.h"
 
-static void i2cGpioInit() {
+static void ICACHE_FLASH_ATTR i2cGpioInit() {
 	ETS_GPIO_INTR_DISABLE();
 
 	PIN_FUNC_SELECT(MCP_SDA_GPIO_MUX, MCP_SDA_GPIO_FUNC);
@@ -20,90 +20,108 @@ static void i2cGpioInit() {
 	ETS_GPIO_INTR_ENABLE();
 }
 
-static void i2cInit() {
+static void ICACHE_FLASH_ATTR i2cSetSdaScl(byte sda, byte scl) {
+
+	sda &= 0x01;
+	scl &= 0x01;
+
+	lastSda = sda;
+	lastScl = scl;
+
+	if (sda == 0 && scl == 0)
+		i2cSdaClrSclClr();
+	else if (sda == 0 && scl == 1)
+		i2cSdaClrSclSet();
+	else if (sda == 1 && scl == 0)
+		i2cSdaSetSclClr();
+	else
+		i2cSdaSetSclSet();
+}
+
+static void ICACHE_FLASH_ATTR i2cInit() {
 	uint8 i;
 
 	i2cGpioInit();
 
-	i2cSdaSetSclClr();
+	i2cSetSdaScl(1, 0);
 	i2cWait();
-	i2cSdaClrSclClr();
+
+	i2cSetSdaScl(0, 0);
 	i2cWait();
-	i2cSdaSetSclClr();
+	i2cSetSdaScl(1, 0);
 	i2cWait();
 
 	for (i = 0; i < 28; i++) {
-		i2cSdaSetSclClr();
+		i2cSetSdaScl(1, 0);
 		i2cWait();
-		i2cSdaSetSclSet();
+		i2cSetSdaScl(1, 1);
 		i2cWait();
 	}
 
 	i2cStop();
 }
 
-static void i2cStart() {
-	i2cSdaSet();
+static void ICACHE_FLASH_ATTR i2cStart() {
+	i2cSetSdaScl(1, lastScl);
 	i2cWait();
-	i2cSdaSetSclSet();
+	i2cSetSdaScl(1, 1);
 	i2cWait();
-	i2cSdaClrSclSet();
-	i2cWait();
-}
-
-static void i2cStop() {
-	i2cWait();
-	i2cSdaClr();
-	i2cWait();
-	i2cSdaClrSclSet();
-	i2cWait();
-	i2cSdaSetSclSet();
+	i2cSetSdaScl(0, 1);
 	i2cWait();
 }
 
-static void i2cSendAck() {
-	i2cSclClr();
+static void ICACHE_FLASH_ATTR i2cStop() {
 	i2cWait();
-	i2cSdaClrSclClr();
+
+	i2cSetSdaScl(0, lastScl);
 	i2cWait();
-	i2cSdaClrSclSet();
+	i2cSetSdaScl(0, 1);
 	i2cWait();
-#ifdef I2C_WAIT_EX_EN
+	i2cSetSdaScl(1, 1);
+	i2cWait();
+}
+
+static void ICACHE_FLASH_ATTR i2cSendAck() {
+	i2cSetSdaScl(lastSda, 0);
+	i2cWait();
+	i2cSetSdaScl(0, 0);
+	i2cWait();
+	i2cSetSdaScl(0, 1);
+	i2cWait();
 	i2cWaitEx();
-#endif
-	i2cSdaClrSclClr();
+	i2cSetSdaScl(0, 0);
 	i2cWait();
-	i2cSdaSetSclClr();
+	i2cSetSdaScl(1, 0);
 	i2cWait();
 }
 
-static void i2cSendNak() {
-	i2cSclClr();
+static void ICACHE_FLASH_ATTR i2cSendNak() {
+	i2cSetSdaScl(lastSda, 0);
 	i2cWait();
-	i2cSdaSetSclClr();
+	i2cSetSdaScl(1, 0);
 	i2cWait();
-	i2cSdaSetSclSet();
+	i2cSetSdaScl(1, 1);
 	i2cWait();
-#ifdef I2C_WAIT_EX_EN
 	i2cWaitEx();
-#endif
-	i2cSdaSetSclClr();
+	i2cSetSdaScl(1, 0);
 	i2cWait();
-	i2cSdaSetSclClr();
+	i2cSetSdaScl(1, 0);
 	i2cWait();
 }
 
-static bool i2cGetAck() {
+static bool ICACHE_FLASH_ATTR i2cGetAck() {
 	uint8 ack;
-	i2cSclClr();
+
+	i2cSetSdaScl(lastSda, 0);
 	i2cWait();
-	i2cSdaSetSclClr();
+	i2cSetSdaScl(1, 0);
 	i2cWait();
-	i2cSdaSetSclSet();
+	i2cSetSdaScl(1, 1);
 	i2cWait();
+
 	ack = i2cSdaRead();
 	i2cWait();
-	i2cSdaSetSclClr();
+	i2cSetSdaScl(1, 0);
 	i2cWait();
 
 	if (ack)
@@ -112,128 +130,70 @@ static bool i2cGetAck() {
 		return true;
 }
 
-static byte i2cReadByte() {
+static byte ICACHE_FLASH_ATTR i2cReadByte() {
 
 	uint8 data = 0, b, i;
 
 	i2cWait();
-	i2cSclClr();
+	i2cSetSdaScl(lastSda, 0);
 	i2cWait();
 
 	for (i = 0; i < 8; i++) {
 		i2cWait();
-		i2cSdaSetSclClr();
+		i2cSetSdaScl(1, 0);
 		i2cWait();
-		i2cSdaSetSclSet();
+		i2cSetSdaScl(1, 1);
 		i2cWait();
 
 		b = i2cSdaRead();
 		i2cWait();
 
+		if (i == 7)
+			i2cWaitEx();
+
 		b <<= (7 - i);
-		data != b;
+		data |= b;
 	}
 
-#ifdef I2C_WAIT_EX_EN
-	i2cWaitEx();
-#endif
+	//i2cWaitEx();
 
-	i2cSdaSetSclClr();
+	i2cSetSdaScl(1, 0);
 	i2cWait();
 
 	return data;
 
 }
 
-static void i2cWriteByte(byte data) {
+static void ICACHE_FLASH_ATTR i2cWriteByte(byte data) {
 
-	uint8 i, dataX;
+	uint8 dat;
+	sint8 i;
 
 	i2cWait();
-	i2cSclClr();
+	i2cSetSdaScl(lastSda, 0);
 	i2cWait();
 
-	for (i = 0; i < 8; i++) {
-		dataX = data >> (7 - i);
-		if (dataX) {
-			i2cSdaSetSclClr();
-			i2cWait();
-			i2cSdaSetSclSet();
-			i2cWait();
-		} else {
-			i2cSdaClrSclClr();
-			i2cWait();
-			i2cSdaClrSclSet();
-			i2cWait();
+	for (i = 7; i >= 0; i--) {
+		dat = data >> i;
+
+		i2cSetSdaScl(dat, 0);
+		i2cWait();
+		i2cSetSdaScl(dat, 1);
+		i2cWait();
+
+		if (i == 0) {
+			i2cWaitEx();
 		}
 
-#ifdef I2C_WAIT_EX_EN
-		if (i == 7)
-		i2cWaitEx();
-#endif
-
-		if (dataX) {
-			i2cSdaSetSclClr();
-			i2cWait();
-		} else {
-			i2cSdaClrSclClr();
-			i2cWait();
-		}
+		i2cSetSdaScl(dat, 0);
+		i2cWait();
 	}
 }
 
-void mcpInit() {
-	i2cInit();
-}
-
-void mcpSetAddr(byte addr) {
-	currentAddr = addr;
-}
-
-bool mcpSetPullups(mcp_gpio gpio, byte mask) {
-	return mcpWriteReg(currentAddr,
-			(gpio == MCP_PORTB) ? MCP_GPPUB_ADDR : MCP_GPPUA_ADDR, mask);
-}
-
-bool mcpGetPullups(mcp_gpio gpio, byte *mask) {
-	return mcpReadReg(currentAddr,
-			(gpio == MCP_PORTB) ? MCP_GPPUB_ADDR : MCP_GPPUA_ADDR, mask);
-}
-
-bool mcpSetPinmode(mcp_gpio gpio, byte mode) {
-	return mcpWriteReg(currentAddr,
-			(gpio == MCP_PORTB) ? MCP_IODIRB_ADDR : MCP_IODIRA_ADDR, mode);
-}
-
-bool mcpGetPinmode(mcp_gpio gpio, byte *mode) {
-	return mcpReadReg(currentAddr,
-			(gpio == MCP_PORTB) ? MCP_IODIRB_ADDR : MCP_IODIRA_ADDR, mode);
-}
-
-bool mcpSetInputPolarity(mcp_gpio gpio, byte pol) {
-	return mcpWriteReg(currentAddr,
-			(gpio == MCP_PORTB) ? MCP_IPOLB_ADDR : MCP_IPOLA_ADDR, pol);
-}
-
-bool mcpGetInputPolarity(mcp_gpio gpio, byte *pol) {
-	return mcpReadReg(currentAddr,
-			(gpio == MCP_PORTB) ? MCP_IPOLB_ADDR : MCP_IPOLA_ADDR, pol);
-}
-
-bool mcpSetGpio(mcp_gpio gpio, byte data) {
-	return mcpWriteReg(currentAddr,
-			(gpio == MCP_PORTB) ? MCP_GPIOB_ADDR : MCP_GPIOA_ADDR, data);
-}
-
-bool mcpGetGpio(mcp_gpio gpio, byte *data) {
-	return mcpReadReg(currentAddr,
-			(gpio == MCP_PORTB) ? MCP_GPIOB_ADDR : MCP_GPIOA_ADDR, data);
-}
-
-static bool mcpWriteReg(byte devAddr, byte regAddr, byte regData) {
+static bool ICACHE_FLASH_ATTR mcpWriteReg(byte regAddr, byte regData) {
 	i2cStart();
-	i2cWriteByte(mcpGetAddr(devAddr, MCP_WRITE));
-	if (i2cGetAck() == false) {
+	i2cWriteByte(MCP_WRITE_CMD);
+	if (!i2cGetAck()) {
 		i2cStop();
 #ifdef MCP_LOG_EN
 		os_printf("NAK while writing device address\n");
@@ -245,7 +205,7 @@ static bool mcpWriteReg(byte devAddr, byte regAddr, byte regData) {
 #endif
 
 	i2cWriteByte(regAddr);
-	if (i2cGetAck() == false) {
+	if (!i2cGetAck()) {
 		i2cStop();
 #ifdef MCP_LOG_EN
 		os_printf("NAK while writing register address\n");
@@ -261,7 +221,7 @@ static bool mcpWriteReg(byte devAddr, byte regAddr, byte regData) {
 	bool rv = i2cGetAck();
 	i2cStop();
 #ifdef MCP_LOG_EN
-	if (rv == false) {
+	if (!rv) {
 		os_printf("NAK while writing register data\n");
 	} else {
 		os_printf("ACK while writing register data\n");
@@ -272,9 +232,9 @@ static bool mcpWriteReg(byte devAddr, byte regAddr, byte regData) {
 
 }
 
-static bool mcpReadReg(byte devAddr, byte regAddr, byte *regData) {
+static bool ICACHE_FLASH_ATTR mcpReadReg(byte regAddr, byte *regData) {
 	i2cStart();
-	i2cWriteByte(mcpGetAddr(devAddr, MCP_WRITE));
+	i2cWriteByte(MCP_WRITE_CMD);
 	if (i2cGetAck() == false) {
 		i2cStop();
 #ifdef MCP_LOG_EN
@@ -302,7 +262,7 @@ static bool mcpReadReg(byte devAddr, byte regAddr, byte *regData) {
 #endif
 
 	i2cStart();
-	i2cWriteByte(mcpGetAddr(devAddr, MCP_READ));
+	i2cWriteByte(MCP_READ_CMD);
 	if (i2cGetAck() == false) {
 		i2cStop();
 #ifdef MCP_LOG_EN
@@ -316,15 +276,37 @@ static bool mcpReadReg(byte devAddr, byte regAddr, byte *regData) {
 #endif
 
 	*regData = i2cReadByte();
-	bool rv = i2cGetAck();
+	i2cGetAck();
 	i2cStop();
-#ifdef MCP_LOG_EN
-	if (rv == false) {
-		os_printf("NAK while reading register data\n");
-	} else {
-		os_printf("ACK while reading register data");
-	}
 
-#endif
-	return rv;
+	return true;
+}
+
+void ICACHE_FLASH_ATTR mcpInit() {
+	i2cInit();
+}
+
+bool ICACHE_FLASH_ATTR mcpSetPullups(mcp_gpio gpio, mcp_pullup_mode mode) {
+	return mcpWriteReg((gpio == MCP_PORTA) ? MCP_GPPUA_ADDR : MCP_GPPUB_ADDR,
+			(mode == MCP_PULL_LOW) ? 0x00 : 0xFF);
+}
+
+bool ICACHE_FLASH_ATTR mcpSetPinmode(mcp_gpio gpio, mcp_pin_mode mode) {
+	return mcpWriteReg((gpio == MCP_PORTA) ? MCP_IODIRA_ADDR : MCP_IODIRB_ADDR,
+			(mode == MCP_OUTPUT) ? 0x00 : 0xFF);
+}
+
+bool ICACHE_FLASH_ATTR mcpSetInputPolarity(mcp_gpio gpio, mcp_ipol_mode mode) {
+	return mcpWriteReg((gpio == MCP_PORTA) ? MCP_IPOLA_ADDR : MCP_IPOLB_ADDR,
+			(mode == MCP_IPOL_NORMAL) ? 0x00 : 0xFF);
+}
+
+bool ICACHE_FLASH_ATTR mcpSetGpio(mcp_gpio gpio, byte data) {
+	return mcpWriteReg((gpio == MCP_PORTA) ? MCP_GPIOA_ADDR : MCP_GPIOB_ADDR,
+			data);
+}
+
+bool ICACHE_FLASH_ATTR mcpGetGpio(mcp_gpio gpio, byte *data) {
+	return mcpReadReg((gpio == MCP_PORTA) ? MCP_GPIOA_ADDR : MCP_GPIOB_ADDR,
+			data);
 }
