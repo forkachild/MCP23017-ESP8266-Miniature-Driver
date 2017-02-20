@@ -29,7 +29,7 @@ Configuration uses a few function calls
 
 	mcpInit();
     
-    Set pin mode to input or output, individual bits can be ORed
+    //Set pin mode to input or output, individual bits can be ORed
     
     mcpSetPinmode(MCP_PORTA, MCP_OUTPUT);
     mcpSetPinmode(MCP_PORTB, 0x0E);
