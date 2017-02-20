@@ -25,7 +25,9 @@ If you do not want to use the default SDA, SCL and MCP23017 address, and also sw
     #define MCP_A1				0
     #define MCP_A3				0
 
-Configuration uses a few function calls
+
+
+## Configuration uses a few function calls
 
 	#include "mcp.h"
     
@@ -44,11 +46,15 @@ Configuration uses a few function calls
     
     mcpSetInputPolarity(MCP_PORTA, MCP_IPOL_INVERTED);
     
-Switch GPIO and read from a port by single calls
+
+
+## Switch GPIO and read from a port by single calls
 
 	uint8 input;
     
 	mcpSetGpio(MCP_PORTA, 0xF0);
     mcpGetGpio(MCP_PORTB, &input);
     
-Enjoy... :-)
+
+
+### Enjoy... :-)
