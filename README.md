@@ -2,6 +2,8 @@
 
 This is a simple MCP23017 driver for ESP8266. MCP23017 is an I/O Expander, which means it provides 16 fully customizable Input/Output pins for any microcontroller supporting I2C protocol. ESP8266 is a powerful chip, except that it lacks the I2C hardware. This library is a fully functional controller for the same. Kudos to developing in C.
 
+The work is heavily based on [this](https://github.com/eadf/esp8266_mcp23017) library. The I2C driver is a modified port of the `i2c_master` library from the `esp-open-sdk`.
+
 Usage is pretty straightforward. No I2C library required. Easy to understand API.
 
 ## Schematic
