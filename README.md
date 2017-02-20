@@ -4,11 +4,11 @@ This is a simple MCP23017 driver for ESP8266. MCP23017 is an I/O Expander, which
 
 Usage is pretty straightforward. No I2C library required. Easy to understand API.
 
-Circuit diagram is as follows
+## Schematic
 
 ![Schematic](https://github.com/forkachild/MCP23017-ESP8266-Driver/raw/master/schematic.png)
 
-## Customize SDA & SCL GPIO, Logging and adddressing
+## Customize SDA & SCL GPIO, Logging and addressing
 
 	// user_config.h
     
