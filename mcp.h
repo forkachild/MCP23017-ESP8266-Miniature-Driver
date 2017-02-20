@@ -1,18 +1,14 @@
 #ifndef MCP_H
 #define MCP_H
 
-#include "c_types.h"
-#include "eagle_soc.h"
+#include "custom_types.h"
 #include "gpio.h"
 #include "osapi.h"
-#include "user_interface.h"
+#include "eagle_soc.h"
 #include "ets_sys.h"
+#include "user_config.h"
 
 // Define the below 4 lines in your user_config.h file
-#define MCP_SDA_GPIO			14
-#define MCP_SCL_GPIO			12
-#define MCP_LOG_EN
-//#define I2C_WAIT_EX_EN
 
 #ifndef MCP_SDA_GPIO
 #define MCP_SDA_GPIO			14
@@ -238,17 +234,19 @@
 
 #define MCP_READ				1
 #define MCP_WRITE				0
-#define mcpGetAddr(x, y)		(((0x20UL | (x)) << 1) | (y))
+#define mcpGetAddr(x, y)		(((0x20U | (x)) << 1) | (y))
 
 //I2C
 
 #define I2C_WAIT_TIME			5
+#ifdef I2C_WAIT_EX_EN
 #define I2C_WAIT_TIME_EX		3
+#endif
 
 #define I2C_ACK					1
 #define I2C_NAK					0
 
-#define bit(x)					(1UL << (x))
+#define bit(x)					(1U << (x))
 #define bits(x, y)				(bit(x) | bit(y))
 #define i2cSdaSet()				gpio_output_set(bit(MCP_SDA_GPIO), 0, bit(MCP_SDA_GPIO), 0)
 #define i2cSdaClr()				gpio_output_set(0, bit(MCP_SDA_GPIO), bit(MCP_SDA_GPIO), 0)
@@ -266,16 +264,10 @@
 #define i2cWaitEx()				os_delay_us(I2C_WAIT_TIME_EX)
 #endif
 
-#define true					(1)
-#define false					(0)
-#define TRUE					true
-#define FALSE					false
-
 typedef enum MCP_GPIO {
 	MCP_PORTA = 0, MCP_PORTB = 1
 } mcp_gpio;
 
-typedef unsigned char bool;
 typedef unsigned char byte;
 
 static byte currentAddr = 0x00;
@@ -287,12 +279,19 @@ static void i2cStop();
 static void i2cSendAck();
 static void i2cSendNak();
 static bool i2cGetAck();
+static byte i2cReadByte();
+static void i2cWriteByte(byte);
 void mcpInit();
 void mcpSetAddr(byte);
 bool mcpSetPullups(mcp_gpio, byte);
+bool mcpGetPullups(mcp_gpio, byte *);
 bool mcpSetPinmode(mcp_gpio, byte);
+bool mcpGetPinmode(mcp_gpio, byte *);
 bool mcpSetInputPolarity(mcp_gpio, byte);
-bool mcpSetGpio(mcp_gpio, byte);
+bool mcpGetInputPolarity(mcp_gpio, byte *);
+bool mcpSetGpio(mcp_gpio, byte data);
 bool mcpGetGpio(mcp_gpio, byte *);
+static bool mcpWriteReg(byte, byte, byte);
+static bool mcpReadReg(byte, byte, byte *);
 
 #endif

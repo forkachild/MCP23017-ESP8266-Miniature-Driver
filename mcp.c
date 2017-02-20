@@ -107,9 +107,9 @@ static bool i2cGetAck() {
 	i2cWait();
 
 	if (ack)
-		return true;
-	else
 		return false;
+	else
+		return true;
 }
 
 static byte i2cReadByte() {
@@ -168,7 +168,7 @@ static void i2cWriteByte(byte data) {
 		}
 
 #ifdef I2C_WAIT_EX_EN
-		if(i == 7)
+		if (i == 7)
 		i2cWaitEx();
 #endif
 
@@ -191,23 +191,43 @@ void mcpSetAddr(byte addr) {
 }
 
 bool mcpSetPullups(mcp_gpio gpio, byte mask) {
-	return mcpWriteReg(currentAddr, (gpio == MCP_PORTB) ? MCP_GPPUB_ADDR : MCP_GPPUA_ADDR, mask);
+	return mcpWriteReg(currentAddr,
+			(gpio == MCP_PORTB) ? MCP_GPPUB_ADDR : MCP_GPPUA_ADDR, mask);
+}
+
+bool mcpGetPullups(mcp_gpio gpio, byte *mask) {
+	return mcpReadReg(currentAddr,
+			(gpio == MCP_PORTB) ? MCP_GPPUB_ADDR : MCP_GPPUA_ADDR, mask);
 }
 
 bool mcpSetPinmode(mcp_gpio gpio, byte mode) {
-	return mcpWriteReg(currentAddr, (gpio == MCP_PORTB) ? MCP_IODIRB_ADDR : MCP_IODIRA_ADDR, mode);
+	return mcpWriteReg(currentAddr,
+			(gpio == MCP_PORTB) ? MCP_IODIRB_ADDR : MCP_IODIRA_ADDR, mode);
+}
+
+bool mcpGetPinmode(mcp_gpio gpio, byte *mode) {
+	return mcpReadReg(currentAddr,
+			(gpio == MCP_PORTB) ? MCP_IODIRB_ADDR : MCP_IODIRA_ADDR, mode);
 }
 
 bool mcpSetInputPolarity(mcp_gpio gpio, byte pol) {
-	return mcpWriteReg(currentAddr, (gpio == MCP_PORTB) ? MCP_IPOLB_ADDR : MCP_IPOLA_ADDR, pol);
+	return mcpWriteReg(currentAddr,
+			(gpio == MCP_PORTB) ? MCP_IPOLB_ADDR : MCP_IPOLA_ADDR, pol);
+}
+
+bool mcpGetInputPolarity(mcp_gpio gpio, byte *pol) {
+	return mcpReadReg(currentAddr,
+			(gpio == MCP_PORTB) ? MCP_IPOLB_ADDR : MCP_IPOLA_ADDR, pol);
 }
 
 bool mcpSetGpio(mcp_gpio gpio, byte data) {
-	return mcpWriteReg(currentAddr, (gpio == MCP_PORTB) ? MCP_GPIOB_ADDR : MCP_GPIOA_ADDR, data);
+	return mcpWriteReg(currentAddr,
+			(gpio == MCP_PORTB) ? MCP_GPIOB_ADDR : MCP_GPIOA_ADDR, data);
 }
 
 bool mcpGetGpio(mcp_gpio gpio, byte *data) {
-	return mcpReadReg(currentAddr, (gpio == MCP_PORTB) ? MCP_GPIOB_ADDR : MCP_GPIOA_ADDR, data);
+	return mcpReadReg(currentAddr,
+			(gpio == MCP_PORTB) ? MCP_GPIOB_ADDR : MCP_GPIOA_ADDR, data);
 }
 
 static bool mcpWriteReg(byte devAddr, byte regAddr, byte regData) {
@@ -220,6 +240,9 @@ static bool mcpWriteReg(byte devAddr, byte regAddr, byte regData) {
 #endif
 		return false;
 	}
+#ifdef MCP_LOG_EN
+	os_printf("ACK while writing device address\n");
+#endif
 
 	i2cWriteByte(regAddr);
 	if (i2cGetAck() == false) {
@@ -230,14 +253,21 @@ static bool mcpWriteReg(byte devAddr, byte regAddr, byte regData) {
 		return false;
 	}
 
+#ifdef MCP_LOG_EN
+	os_printf("ACK while writing register address\n");
+#endif
+
 	i2cWriteByte(regData);
 	bool rv = i2cGetAck();
 	i2cStop();
-	if (rv == false) {
 #ifdef MCP_LOG_EN
+	if (rv == false) {
 		os_printf("NAK while writing register data\n");
-#endif
+	} else {
+		os_printf("ACK while writing register data\n");
 	}
+#endif
+
 	return rv;
 
 }
@@ -253,6 +283,10 @@ static bool mcpReadReg(byte devAddr, byte regAddr, byte *regData) {
 		return false;
 	}
 
+#ifdef MCP_LOG_EN
+	os_printf("ACK while writing device address\n");
+#endif
+
 	i2cWriteByte(regAddr);
 
 	if (i2cGetAck() == false) {
@@ -262,6 +296,10 @@ static bool mcpReadReg(byte devAddr, byte regAddr, byte *regData) {
 #endif
 		return false;
 	}
+
+#ifdef MCP_LOG_EN
+	os_printf("ACK while writing register address\n");
+#endif
 
 	i2cStart();
 	i2cWriteByte(mcpGetAddr(devAddr, MCP_READ));
@@ -273,14 +311,20 @@ static bool mcpReadReg(byte devAddr, byte regAddr, byte *regData) {
 		return false;
 	}
 
+#ifdef MCP_LOG_EN
+	os_printf("ACK while writing device address for reading\n");
+#endif
+
 	*regData = i2cReadByte();
 	bool rv = i2cGetAck();
 	i2cStop();
-	if (rv == false) {
 #ifdef MCP_LOG_EN
-		os_printf("NAK while writing device address\n");
-#endif
+	if (rv == false) {
+		os_printf("NAK while reading register data\n");
+	} else {
+		os_printf("ACK while reading register data");
 	}
+
+#endif
 	return rv;
 }
-
