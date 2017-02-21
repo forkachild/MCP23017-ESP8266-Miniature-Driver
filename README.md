@@ -11,53 +11,56 @@ Usage is pretty straightforward. No I2C library required. Easy to understand API
 
 ## Customize SDA & SCL GPIO, Logging and addressing
 
-	// user_config.h
-    
-    // Choose GPIO
-    
-    #define MCP_SDA_GPIO		14
-    #define MCP_SCL_GPIO		12
-    
-    // Debugging mode
-    
-    #define MCP_LOG_EN
-    
-    // Custom MCP23017 address
-    
-    #define MCP_A0				0
-    #define MCP_A1				0
-    #define MCP_A3				0
+```c
+// user_config.h
 
+// Choose GPIO
+
+#define MCP_SDA_GPIO		14
+#define MCP_SCL_GPIO		12
+    
+// Debugging mode
+    
+#define MCP_LOG_EN
+    
+// Custom MCP23017 address
+    
+#define MCP_A0				0
+#define MCP_A1				0
+#define MCP_A3				0
+```
 
 
 ## Configuration uses a few function calls
 
-	#include "mcp.h"
-    
-    mcpInit();
-    
-    // Set pin mode to input or output, individual bits can be ORed
-    
-    mcpSetPinmode(MCP_PORTA, MCP_OUTPUT);
-    mcpSetPinmode(MCP_PORTB, 0x0E);
-    
-    // Configure internal pullups (for input modes only), individual bits can be ORed
-    
-    mcpSetPullups(MCP_PORTB, MCP_PULL_HIGH);
-    
-    // Input polarity can be changed, and yet again individual bits can be ORed
-    
-    mcpSetInputPolarity(MCP_PORTA, MCP_IPOL_INVERTED);
-    
+```c
+#include "mcp.h"
+
+mcpInit();
+
+// Set pin mode to input or output, individual bits can be ORed
+
+mcpSetPinmode(MCP_PORTA, MCP_OUTPUT);
+mcpSetPinmode(MCP_PORTB, 0x0E);
+
+// Configure internal pullups (for input modes only), individual bits can be ORed
+
+mcpSetPullups(MCP_PORTB, MCP_PULL_HIGH);
+
+// Input polarity can be changed, and yet again individual bits can be ORed
+
+mcpSetInputPolarity(MCP_PORTA, MCP_IPOL_INVERTED);
+```
 
 
 ## Effortlessly control GPIO
 
-	uint8 input;
-    
-	mcpSetGpio(MCP_PORTA, 0xF0);
-    mcpGetGpio(MCP_PORTB, &input);
-    
+```c
+uint8 input;
+
+mcpSetGpio(MCP_PORTA, 0xF0);
+mcpGetGpio(MCP_PORTB, &input);
+``` 
 
 
 ### Enjoy... :-)
