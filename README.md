@@ -62,5 +62,85 @@ mcpSetGpio(MCP_PORTA, 0xF0);
 mcpGetGpio(MCP_PORTB, &input);
 ``` 
 
+## Examples
 
-### Enjoy... :-)
+### Blinky
+
+We all know this one
+
+```c
+// user_main.c
+
+#include "os_type.h"
+#include "mcp.h"
+
+#define LED_PIN         (1 << 0)
+
+os_timer_t timer;
+bool toggle = false;
+
+LOCAL void ICACHE_FLASH_ATTR timerPoll(void *arg) {
+    if(toggle) {
+        mcpSetGpio(MCP_PORTA, LED_PIN);     // Switch on LED
+        toggle = false;
+    } else {
+        mcpSetGpio(MCP_PORTA, 0);           // Switch off LED
+        toggle = true;
+    }
+}
+
+LOCAL void ICACHE_FLASH_ATTR initDoneCb() {
+    os_timer_disarm(&timer);
+    os_timer_setfn(&timer, (os_timer_func_t *) timerPoll);
+    os_timer_arm(&timer, 1000, true);       // Create timer
+}
+
+void user_init() {
+    mcpInit();                              // Init the library
+    mcpSetPinmode(MCP_PORTA, MCP_OUTPUT);   // Set full Port A as output
+    system_init_done_cb(initDoneCb);
+}
+```
+
+### Read switch to control an LED
+
+The switch is push-to-close and connects PORTB pin 0 to ground.
+
+```c
+// user_main.c
+
+#include "os_type.h"
+#include "mcp.h"
+
+#define LED_PIN         (1 << 0)
+#define SWITCH_PIN      (1 << 0)
+
+os_timer_t timer;
+uint8 data;
+
+LOCAL void ICACHE_FLASH_ATTR timerPoll(void *arg) {
+    mcpGetGpio(PORTB, &data);                       // Read Port B where switch is connected
+    if(data & SWITCH_PIN) {                         // Check whether switch is on
+        mcpSetGpio(MCP_PORTA, LED_PIN);             // Switch on LED
+    } else {
+        mcpSetGpio(MCP_PORTA, 0);                   // Switch off LED
+    }
+}
+
+LOCAL void ICACHE_FLASH_ATTR initDoneCb() {
+    os_timer_disarm(&timer);
+    os_timer_setfn(&timer, (os_timer_func_t *) timerPoll);
+    os_timer_arm(&timer, 100, true);                // Create timer to poll switch
+}
+
+void user_init() {
+    mcpInit();                                      // Init the library
+    mcpSetPinmode(MCP_PORTA, MCP_OUTPUT);           // Set full Port A as output
+    mcpSetPinmode(MCP_PORTB, MCP_INPUT);            // Set full Port B as input
+    mcpSetPullups(MCP_PORTB, MCP_PULL_HIGH);        // Pullup Port B pins for switch to pull it down on press
+    mcpSetInputPolarity(MCP_PORTB, MCP_INVERTED);   // Polrity has to be reversed since pullup has to mean 1
+    system_init_done_cb(initDoneCb);
+}
+```
+
+## Enjoy
